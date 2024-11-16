@@ -335,6 +335,20 @@ export default class ApiGenerator {
   ) {
     if (this.spec.components?.schemas) {
       this.preprocessComponents(this.spec.components.schemas);
+
+      // Generate missing/unreferenced schemas from the components.
+      for (const [name, obj] of Object.entries(this.spec.components.schemas)) {
+        const alias = this.aliases.find((a) => a.name.text == name);
+        if (!alias) {
+          this.aliases.push(
+            cg.createTypeAliasDeclaration({
+              modifiers: [cg.modifier.export],
+              name: this.getUniqueAlias(toIdentifier(name, true)),
+              type: this.getTypeFromSchema(this.resolve(obj)),
+            }),
+          );
+        }
+      }
     }
   }
 
